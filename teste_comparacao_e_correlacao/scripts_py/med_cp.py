@@ -9,6 +9,11 @@ SavePath = os.path.join(os.getcwd(), SaveDir)
 if not os.path.exists(SavePath):
     os.makedirs(SavePath)
 
+Datadir     = 'dados'
+DataPath    = os.path.join(os.getcwd(), Datadir)
+
+if not os.path.exists(DataPath):
+    os.makedirs(DataPath)
 
 dh = 2
 dt = 0.0004
@@ -34,7 +39,7 @@ util.plot_cg(
 
 for i in range(0,len((theta))):
     np.savetxt(
-        f"dados/cpf_{i}.txt",
+        os.path.join(DataPath, f'cpf_{i}.txt'),
         np.column_stack((f, cpf[:, i])),
         fmt="%.3f"
     )
@@ -123,7 +128,7 @@ for d1, d2 in zip(data1, data2):
 
             
             np.savetxt(
-                f"dados/cp-{i+1}_{f}hz.txt",
+                os.path.join(DataPath, f'cp-{i+1}_{f}hz.txt'),
                 np.column_stack((freq_band, cp_med)),
                 fmt="%.3f"
             )
@@ -133,7 +138,7 @@ f_list = []
 cp_list = []
 for i in range(0, len(theta)):
     for f in frq:
-        file = np.loadtxt(f'dados/cp-{i+1}_{f}hz.txt', dtype='f')
+        file = np.loadtxt(os.path.join(DataPath,f'cp-{i+1}_{f}hz.txt'), dtype='f')
 
         f_list.append(file[:,0])
         cp_list.append(file[:,1])
@@ -143,13 +148,13 @@ f_total = np.concatenate(f_list).reshape(4, 101, 1)
 cp_total = np.concatenate(cp_list).reshape(4, 101, 1)
 
 # Remover arquivos
-files = glob.glob('dados/cp-*hz.txt')
+files = glob.glob(os.path.join(DataPath,'cp-*hz.txt'))
 for f in files:
     os.remove(f)
 
 for i in range(0, len(theta)):
     np.savetxt(
-        f"dados/dados_cp_{i}.txt",
+        os.path.join(DataPath,f'dados_cp_{i}.txt'),
         np.column_stack((f_total[i, :], cp_total[i, :])),
         fmt="%.3f"
     )

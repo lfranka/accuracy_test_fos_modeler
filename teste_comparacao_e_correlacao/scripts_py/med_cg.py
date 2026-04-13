@@ -9,6 +9,13 @@ SavePath = os.path.join(os.getcwd(), SaveDir)
 if not os.path.exists(SavePath):
     os.makedirs(SavePath)
 
+
+Datadir     = 'dados'
+DataPath    = os.path.join(os.getcwd(), Datadir)
+
+if not os.path.exists(DataPath):
+    os.makedirs(DataPath)
+
 # ============================================
 #      Plotando o modelo de velocidade
 # ============================================
@@ -126,7 +133,7 @@ util.plot_cg(
 # salva os dados
 for i in range(0, len(theta)):
     np.savetxt(
-        f"dados/cgf_{i}.txt",
+        os.path.join(DataPath,f'cgf_{i}.txt'),
         np.column_stack((f, cgf[:, i])),
         fmt="%.3f"
     )
@@ -222,7 +229,8 @@ frq     = np.array(frq).reshape(len(frq), 1)
 
 for i in range(0, len(theta)):
     # salva valores medidos
-    np.savetxt(f'dados/dados_cg_{i}.txt', 
+    np.savetxt(
+        os.path.join(DataPath,f'dados_cg_{i}.txt'), 
         np.column_stack((frq, cg_est[:, i])),
         fmt='%.3f')
     
