@@ -40,8 +40,8 @@ The main goal of this work is to establish a **pragmatic workflow for validating
 ### 1. Clone the Repository
 ```bash
 git clone https://github.com/lfranka/accuracy_test_fos_modeler.git
-cd accuracy_test_fos_modeler```
-
+cd accuracy_test_fos_modeler
+```
 ### 2. Install Madagascar
 
     Please refer to the [official MADAGASCAR package documentation](https://ahay.org/wiki/Main_Page) for instructions on [downloading](https://ahay.org/wiki/Download) and [installing](https://ahay.org/wiki/Installation) the package.
