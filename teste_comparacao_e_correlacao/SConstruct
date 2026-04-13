@@ -1,0 +1,423 @@
+from rsf.proj import *
+import fdmod as fd
+import math as m
+import numpy as np
+import os
+from SCons.Script import GetOption
+import shutil as sh
+
+# ========================================================================================================================================
+
+# parametros do modelo
+par = {
+	'nx':[701, 1402],    'ox':0,     'dx':[2, 1],       		'lx':'x',	  'ux':'m',
+	'nz':[701, 1402],    'oz':0,	 'dz':[2, 1],       		'lz':'z',     'uz':'m',
+	'nt':[5000, 20000],  'ot':0,	 'dt':[0.0004, 0.0001],  	'lt':'t',	  'ut':'s',
+	'ompnth':10,
+	'jsnap':20,
+	'nb':200,
+	'frq':[5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55],
+	'height':7,
+}
+
+fd.param(par)
+# ========================================================================================================================================
+# Parâmetros de geometria do modelo
+par['pi'] = m.pi
+
+# Criando kt ideal para cada uma das frequências
+par['kt'] = []
+for f in par['frq']:
+    kt = int(1/(f * par['dt'][0]))
+    par['kt'].append(kt)
+
+
+# Criando theta para medir anisotropia
+par['theta'] = [0, par['pi'] / 12, par['pi']/6, par['pi']/ 4]
+
+# densidade do modelo
+par['dens'] = 1200
+
+# velocidade das camadas
+par['vel'] = 1000
+
+# distância entre os dois receptores 
+par['dr'] = 300		# para 2 Hz deve estar entre 125 e 250m
+
+# Localização da fonte
+par['sx'] = 300
+par['sz'] = 500
+
+# Localização do receptor
+par['r'] = [700.2, 700.25, 700.4]	# .2 é semi-inteiro de dt e .4 é inteiro de dt
+
+# Condição para modelagens
+cond_rc = input(str('Quer modelagem com r/c inteiro de dt: [s/n]')).upper()	# Se sim -> faz modelagem com r/c inteiro de dt
+cond_dh = input(str('Quer usar espaçamento menor: [s/n]')).upper() # Se sim -> faz modealgem com dh menor
+cond_fo = input(str('Quer modelagem com sfawefd2d_fo: [s/n]')).upper()
+
+if cond_rc == 'S':
+	
+	DirName = 'dados_rc'
+	pwd = os.getcwd()
+	path_bin = '/home/lucas/rsfdata/codigos/Caracterizacao_awefd2d_fo/teste_comparacao_e_correlacao'
+
+	DirPath = os.path.join(pwd, DirName)
+	BinPath = os.path.join(path_bin, DirName)
+
+	if not os.path.exists(DirPath):
+		os.makedirs(DirPath)
+	if not os.path.exists(BinPath):
+		os.makedirs(BinPath)
+
+	if GetOption('clean'):
+		sh.rmtree(BinPath)
+
+elif cond_dh == 'S':
+
+	DirName  = 'dados_dh'
+	pwd		 = os.getcwd()
+	path_bin = '/home/lucas/rsfdata/codigos/Caracterizacao_awefd2d_fo/teste_comparacao_e_correlacao'
+
+	DirPath = os.path.join(pwd, DirName)
+	BinPath = os.path.join(path_bin, DirName)
+
+	if not os.path.exists(DirPath):
+		os.makedirs(DirPath)
+	if not os.path.exists(BinPath):
+		os.makedirs(BinPath)
+
+	if GetOption('clean'):
+		sh.rmtree(BinPath)
+
+elif cond_fo == 'S':
+
+	DirName  = 'dados_fo'
+	pwd		 = os.getcwd()
+	path_bin = '/home/lucas/rsfdata/codigos/Caracterizacao_awefd2d_fo/teste_comparacao_e_correlacao'
+
+	DirPath = os.path.join(pwd, DirName)
+	BinPath = os.path.join(path_bin, DirName)
+
+	if not os.path.exists(DirPath):
+		os.makedirs(DirPath)
+	if not os.path.exists(BinPath):
+		os.makedirs(BinPath)
+
+	if GetOption('clean'):
+		sh.rmtree(BinPath)	
+else:
+	DirName  = 'dados_frq'
+	pwd		 = os.getcwd()
+	path_bin = '/home/lucas/rsfdata/codigos/Caracterizacao_awefd2d_fo/teste_comparacao_e_correlacao'
+
+	DirPath = os.path.join(pwd, DirName)
+	BinPath = os.path.join(path_bin, DirName)
+
+	if not os.path.exists(DirPath):
+		os.makedirs(DirPath)
+	if not os.path.exists(BinPath):
+		os.makedirs(BinPath)
+
+	if GetOption('clean'):
+		sh.rmtree(BinPath)
+
+
+if cond_rc == 'S':
+    par['rx'] = par['sx'] + par['r'][2]
+    par['rz'] = par['sz']
+
+elif cond_dh == 'S':
+	par['rx'] = par['sx'] + par['r'][1]
+	par['rz'] = par['sz']
+	print(par['rx'])
+elif cond_fo == 'S':
+	par['rx'] = par['sx'] + par['r'][0]
+	par['rz'] = par['sz']
+else:
+	par['rx'] = []
+	par['rz'] = []
+
+	par['rx_'] = []
+	par['rz_'] = []
+	for th in par['theta']:
+		rx = par['sx'] + (par['r'][0] * np.cos(th))
+		rz = par['sz'] + (par['r'][0] * np.sin(th))
+		
+		rx_ = par['sx'] + ((par['r'][0] + par['dr']) * np.cos(th))
+		rz_ = par['sz'] + ((par['r'][0] + par['dr']) * np.sin(th))
+
+		par['rx'].append(rx)
+		par['rz'].append(rz)
+
+		par['rx_'].append(rx_)
+		par['rz_'].append(rz_)
+
+# =======================================================================================================================================
+# fazendo os modelos
+
+if cond_dh == 'S':
+	# modelo de densiade 
+	Flow('Dens', None, 
+		'''
+			spike mag=%g
+			n1=%d o1=%g d1=%g
+			n2=%d o2=%g d2=%g
+			label1=%s unit1=%s label2=%s unit2=%s
+		''' %(
+			par['dens'],
+			par['nz'][1], par['oz'], par['dz'][1],
+			par['nx'][1], par['ox'], par['dx'][1],
+			par['lz'], par['uz'], par['lx'], par['ux']
+		))
+
+	# modelo de velocidade constante
+	Flow('Vel', None, 
+		'''   
+			spike nsp=1, mag=%g
+			n1=%d o1=%g d1=%g
+			n2=%d o2=%g d2=%g
+			label1=%s unit1=%s label2=%s unit2=%s 
+		''' % (
+			par['vel'],
+			par['nz'][1], par['oz'], par['dz'][1],
+			par['nx'][1], par['ox'], par['dx'][1],
+			par['lz'], par['uz'], par['lx'], par['ux']
+		))
+else:
+	# modelo de densiade 
+	Flow('Dens', None, 
+		'''
+			spike mag=%g
+			n1=%d o1=%g d1=%g
+			n2=%d o2=%g d2=%g
+			label1=%s unit1=%s label2=%s unit2=%s
+		''' %(
+			par['dens'],
+			par['nz'][0], par['oz'], par['dz'][0],
+			par['nx'][0], par['ox'], par['dx'][0],
+			par['lz'], par['uz'], par['lx'], par['ux']
+		))
+
+	# modelo de velocidade constante
+	Flow('Vel', None, 
+		'''   
+			spike nsp=1, mag=%g
+			n1=%d o1=%g d1=%g
+			n2=%d o2=%g d2=%g
+			label1=%s unit1=%s label2=%s unit2=%s 
+		''' % (
+			par['vel'],
+			par['nz'][0], par['oz'], par['dz'][0],
+			par['nx'][0], par['ox'], par['dx'][0],
+			par['lz'], par['uz'], par['lx'], par['ux']
+		))
+
+	      
+# ============================================================================================================================================
+# motando a gemetria de aquisão
+
+# posição da fonte
+fd.point('ss', par['sx'], par['sz'], par)
+
+# receptor
+if cond_rc == 'S' or cond_dh == 'S' or cond_fo == 'S':
+	fd.point('rr', par['rx'], par['rz'], par)
+else:
+	for rx, rz, i in zip(par['rx'], par['rz'], range(0, len(par['rx']))):
+		fd.point('rr1_%s'%(i+1), rx, rz, par)
+
+		Flow('rr1', [f'rr1_{i+1}' for i in range(0, len(par['rx']))], 'cat ${SOURCES[1:%d]} axis=2'%(len(par['rx'])))
+
+	for rx, rz, i in zip(par['rx_'], par['rz_'], range(0, len(par['rx_']))):
+		fd.point('rr2_%s'%(i+1), rx, rz, par)
+
+		Flow('rr2', [f'rr2_{i+1}' for i in range(0, len(par['rx_']))], 'cat ${SOURCES[1:%d]} axis=2'%(len(par['rx_'])))
+
+	Flow('rr', ['rr1', 'rr2'], 'cat ${SOURCES[1]} axis=2')
+
+
+# Plot('Vel', fd.cgrey('''allpos=y wanttitle=n
+#                         color=j font=2 %(plotsmod)s
+#                      '''%par,par))
+
+# Plot('ss',fd.ssplot('symbol=* plotcol=7 symbolsz=14 plotfat=9 %(plotsmod)s'%par,par))
+
+# Plot('rr', 'window j2=1 |' +
+#                fd.rrplot('symbol=v plotcol=4 symbolsz=10 plotfat=9 %(plotsmod)s'%par,par))
+               
+# Result('Vel',['Vel','ss','rr'],'Overlay')
+
+# ============================================================================================================================================
+if cond_rc == 'S':
+	# Ricker wavelet
+	Flow(os.path.join(DirPath, 'wav_rc'), None,
+		'''
+		spike nsp=1 mag=1 n1=%d d1=%g o1=%g k1=%d |
+		pad end1=%d |
+		ricker1 frequency=%g |
+		window n1=%d |
+		scale axis=123 |
+		put label1=t
+		''' % (par['nt'][0], par['dt'][0], par['ot'], par['kt'][1], par['nt'][0], par['frq'][1], par['nt'][0]))
+
+	Flow(os.path.join(DirPath, 'wavrc'),os.path.join(DirPath, 'wav_rc'),'transp')
+
+    #============================================================================================================================================
+	#       Modelagem com awefd2d_fos
+	#============================================================================================================================================
+	# fazendo a modelagem com sfawefd2d_fos para uma fonte monopolar
+	Flow([os.path.join(DirPath, 'data_rc'), os.path.join(DirPath,'wfld_rc')], [os.path.join(DirPath, 'wavrc'), 'Vel', 'Dens', 'ss', 'rr'],
+		'''
+			awefd2d_fos
+			vel=${SOURCES[1]}
+			den=${SOURCES[2]}
+			sou=${SOURCES[3]}
+			rec=${SOURCES[4]}
+			wfl=${TARGETS[1]}
+			dabc=%(dabc)s ompnth=%(ompnth)s jsnap=%(jsnap)d verb=y snap=%(snap)s free=n nb=%(nb)d
+		'''%par)
+				
+
+	Flow(os.path.join(DirPath, 'dadoP_rc.rsf'), os.path.join(DirPath, 'data_rc'),
+		'''
+			transp | pad beg1=1 | put o1=0 | window n1=%d
+		'''%(par['nt'][0]))
+
+elif cond_dh == 'S':
+	# Ricker wavelet
+	Flow(os.path.join(DirPath, 'wav_dh'), None,
+		'''
+		spike nsp=1 mag=1 n1=%d d1=%g o1=%g k1=%d |
+		pad end1=%d |
+		ricker1 frequency=%g |
+		window n1=%d |
+		scale axis=123 |
+		put label1=t
+		''' % (
+			par['nt'][1], par['dt'][1], par['ot'], 1000, 
+			par['nt'][1], par['frq'][1], par['nt'][1]))
+
+	Flow(os.path.join(DirPath,'wavdh'),os.path.join(DirPath, 'wav_dh'),'transp')
+    #============================================================================================================================================
+	#       Modelagem com awefd2d_fos
+	#============================================================================================================================================
+	# fazendo a modelagem com sfawefd2d_fos para uma fonte monopolar
+	Flow([os.path.join(DirPath,'data_dh'), os.path.join(DirPath,'wfld_dh')], [os.path.join(DirPath,'wavdh'), 'Vel', 'Dens', 'ss', 'rr'],
+		'''
+			awefd2d_fos
+			vel=${SOURCES[1]}
+			den=${SOURCES[2]}
+			sou=${SOURCES[3]}
+			rec=${SOURCES[4]}
+			wfl=${TARGETS[1]}
+			dabc=%(dabc)s ompnth=%(ompnth)s jsnap=%(jsnap)d verb=y snap=%(snap)s free=n nb=%(nb)d
+		'''%par)
+				
+
+	Flow(os.path.join(DirPath,'dataP_dh'), os.path.join(DirPath,'data_dh'),
+		'''
+			transp | pad beg1=1 | put o1=0 | window n1=%d
+		'''%(par['nt'][1]))
+	
+elif cond_fo == 'S':
+
+	# Ricker wavelet
+	Flow(os.path.join(DirPath, 'wav_fo'), None,
+		'''
+		spike nsp=1 mag=1 n1=%d d1=%g o1=%g k1=%d |
+		pad end1=%d |
+		ricker1 frequency=%g |
+		window n1=%d |
+		scale axis=123 |
+		put label1=t
+		''' % (par['nt'][0], par['dt'][0], par['ot'], par['kt'][1], par['nt'][0], par['frq'][1], par['nt'][0]))
+
+	Flow(os.path.join(DirPath, 'wavfo'),os.path.join(DirPath, 'wav_fo'),'transp')
+
+	#============================================================================================================================================
+	#       Modelagem com awefd2d_fo
+	#============================================================================================================================================
+	# fazendo a modelagem com sfawefd2d_fo para uma fonte monopolar
+	Flow([os.path.join(DirPath,'data_fo'), os.path.join(DirPath,'wfld_fo')], [os.path.join(DirPath, 'wavfo'), 'Vel', 'Dens', 'ss', 'rr'],
+		'''
+			awefd2d_fo
+			vel=${SOURCES[1]}
+			den=${SOURCES[2]}
+			sou=${SOURCES[3]}
+			rec=${SOURCES[4]}
+			wfl=${TARGETS[1]}
+			dabc=%(dabc)s ompnth=%(ompnth)s jsnap=%(jsnap)d verb=y snap=%(snap)s free=n nb=%(nb)d
+		'''%par)
+				
+	# Retirando o campo de pressão no receptor. Colocando um zero no inicio do dado
+	Flow(os.path.join(DirPath,'dataP_fo'), os.path.join(DirPath,'data_fo'),
+		'''
+			transp | pad beg1=1 | put o1=0 | window n1=%d
+		'''%(par['nt'][0]))
+	
+	#============================================================================================================================================
+	#       Modelagem com awefd2d_fos
+	#============================================================================================================================================
+	# fazendo a modelagem com sfawefd2d_fos para uma fonte monopolar
+	Flow([os.path.join(DirPath,'data_fos'), os.path.join(DirPath,'wfld_fos')], [os.path.join(DirPath, 'wavfo'), 'Vel', 'Dens', 'ss', 'rr'],
+		'''
+			awefd2d_fos
+			vel=${SOURCES[1]}
+			den=${SOURCES[2]}
+			sou=${SOURCES[3]}
+			rec=${SOURCES[4]}
+			wfl=${TARGETS[1]}
+			dabc=%(dabc)s ompnth=%(ompnth)s jsnap=%(jsnap)d verb=y snap=%(snap)s free=n nb=%(nb)d
+		'''%par)
+				
+	# Retirando o campo de pressão no receptor. Colocando um zero no inicio do dado
+	Flow(os.path.join(DirPath,'dataP_fos'), os.path.join(DirPath,'data_fos'),
+		'''
+			transp | pad beg1=1 | put o1=0 | window n1=%d
+		'''%(par['nt'][0]))
+else:
+	# Ricker wavelet
+	for f, kt in zip(par['frq'], par['kt']):
+		Flow(os.path.join(DirPath,'wav_%s'%f), None,
+			'''
+			spike nsp=1 mag=1 n1=%d d1=%g o1=%g k1=%d |
+			pad end1=%d |
+			ricker1 frequency=%g |
+			window n1=%d |
+			scale axis=123 |
+			put label1=t
+			''' % (par['nt'][0], par['dt'][0], par['ot'], kt, par['nt'][0], f, par['nt'][0]))
+
+		Flow(os.path.join(DirPath,'wav%s'%f),os.path.join(DirPath,'wav_%s'%f),'transp')
+
+		#============================================================================================================================================
+		#       Modelagem com awefd2d_fos
+		#============================================================================================================================================
+		# fazendo a modelagem com sfawefd2d_fos para uma fonte monopolar
+		Flow([os.path.join(DirPath,'data_fos%s'%f), os.path.join(DirPath,'wfld_fos%s'%f)], [os.path.join(DirPath,'wav%s'%f), 'Vel', 'Dens', 'ss', 'rr'],
+			'''
+				awefd2d_fos
+				vel=${SOURCES[1]}
+				den=${SOURCES[2]}
+				sou=${SOURCES[3]}
+				rec=${SOURCES[4]}
+				wfl=${TARGETS[1]}
+				dabc=%(dabc)s ompnth=%(ompnth)s jsnap=%(jsnap)d verb=y snap=%(snap)s free=n nb=%(nb)d
+			'''%par)
+					
+		# Retirando o campo de pressão no receptor. Colocando um zero no inicio do dado
+		for i in range(0, len(par['theta'])):
+			Flow(os.path.join(DirPath,'dataP1-%s_fos%s'%((i+1), f)), os.path.join(DirPath,'data_fos%s'%f),
+				'''
+					transp | pad beg1=1 | put o1=0 | window n2=1 f2=%d n1=%d
+				'''%(i, par['nt'][0]))
+		for i in range(4, 2*len(par['theta'])):
+			Flow(os.path.join(DirPath,'dataP2-%s_fos%s'%((i+1), f)), os.path.join(DirPath,'data_fos%s'%f),
+				'''
+					transp | pad beg1=1 | put o1=0 | window n2=1 f2=%d n1=%d
+				'''%(i, par['nt'][0]))
+
+
+
+End()
