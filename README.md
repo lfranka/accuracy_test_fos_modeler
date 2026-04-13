@@ -40,7 +40,7 @@ The main goal of this work is to establish a **pragmatic workflow for validating
 ### 1. Clone the Repository
 ```bash
 git clone https://github.com/lfranka/accuracy_test_fos_modeler.git
-cd accuracy_test_fos_modeler
+cd accuracy_test_fos_modeler```
 
 ### 2. Install Madagascar
 
