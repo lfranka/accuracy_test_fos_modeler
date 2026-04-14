@@ -3,7 +3,7 @@ import util
 import os
 import matplotlib.pyplot as plt
 
-SaveDir = '../figs_comp'
+SaveDir = '../figs'
 SavePath = os.path.join(os.getcwd(), SaveDir)
 
 if not os.path.exists(SavePath):

@@ -3,7 +3,7 @@ import os
 import glob
 import util
 
-SaveDir = '../figs_comp'
+SaveDir = '../figs'
 SavePath = os.path.join(os.getcwd(), SaveDir)
 
 if not os.path.exists(SavePath):
