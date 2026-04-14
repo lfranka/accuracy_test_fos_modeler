@@ -44,7 +44,7 @@ cd accuracy_test_fos_modeler
 ```
 ### 2. Install Madagascar
 
-    Please refer to the [official MADAGASCAR package documentation](https://ahay.org/wiki/Main_Page) for instructions on [downloading](https://ahay.org/wiki/Download) and [installing](https://ahay.org/wiki/Installation) the package.
+   Please refer to the [official MADAGASCAR package documentation](https://ahay.org/wiki/Main_Page) for instructions on [downloading](https://ahay.org/wiki/Download) and [installing](https://ahay.org/wiki/Installation) the package.
 
 ### 3. Install the Source Code
 
