@@ -77,6 +77,7 @@ cd accuracy_test_fos_modeler
    ```
    Then go to scripts_py directory and run the three scripts to see and save the results
    ```bash
+   cd scripts_py
    python name_scripts.py
    ```
    The data for group and phase velocity is save in data directory and the figures of the results is save in figs_comp figs directory.
