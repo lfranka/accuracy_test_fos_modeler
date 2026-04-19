@@ -2,9 +2,6 @@ import numpy as np
 import util
 import os
 import matplotlib.pyplot as plt
-from scipy.signal import hilbert
-from scipy.ndimage import gaussian_filter1d
-
 
 
 SaveDir = '../figs'
@@ -63,51 +60,51 @@ for i in range(0, len(theta)):
     rec_2[i, 0] = rx_
     rec_2[i, 1] = rz_
 
-# # ----------------------------
-# # Plot
-# # ----------------------------
-# plt.figure(figsize=(13, 5))
+# ----------------------------
+# Plot
+# ----------------------------
+plt.figure(figsize=(13, 5))
 
-# extent = [x.min(), x.max(), z.max(), z.min()]
+extent = [x.min(), x.max(), z.max(), z.min()]
 
-# im = plt.imshow(vel, cmap='viridis', extent=extent, vmin=900, vmax=1000, aspect=0.5)
+im = plt.imshow(vel, cmap='viridis', extent=extent, vmin=900, vmax=1000, aspect=0.5)
 
-# # Color bar
-# cbar = plt.colorbar(im, shrink=1, pad=0.05)
-# cbar.ax.tick_params(labelsize=14)
-# cbar.set_label('Velocity (m/s)', fontsize=13, fontweight='bold')
+# Color bar
+cbar = plt.colorbar(im, shrink=1, pad=0.05)
+cbar.ax.tick_params(labelsize=14)
+cbar.set_label('Velocity (m/s)', fontsize=13, fontweight='bold')
 
-# # Fonte
-# plt.scatter(fonte[0], fonte[1], color='red', marker='*', s=150, label='Source')
+# Fonte
+plt.scatter(fonte[0], fonte[1], color='red', marker='*', s=150, label='Source')
 
-# # Receptores
-# plt.scatter(rec_1[0, 0], rec_1[0, 1], color='blue', marker='^', s=100, label='θ = 0')    # primeira linha
-# plt.scatter(rec_2[0, 0], rec_2[0, 1], color='blue', marker='^', s=100,)                     # segunda linha
+# Receptores
+plt.scatter(rec_1[0, 0], rec_1[0, 1], color='blue', marker='^', s=100, label='θ = 0')    # primeira linha
+plt.scatter(rec_2[0, 0], rec_2[0, 1], color='blue', marker='^', s=100,)                     # segunda linha
 
-# plt.scatter(rec_1[1, 0], rec_1[1, 1], color='black', marker='^', s=100, label='θ = π/12')    # primeira linha
-# plt.scatter(rec_2[1, 0], rec_2[1, 1], color='black', marker='^', s=100,)                     # segunda linha
+plt.scatter(rec_1[1, 0], rec_1[1, 1], color='black', marker='^', s=100, label='θ = π/12')    # primeira linha
+plt.scatter(rec_2[1, 0], rec_2[1, 1], color='black', marker='^', s=100,)                     # segunda linha
 
-# plt.scatter(rec_1[2, 0], rec_1[2, 1], color='green', marker='^', s=100, label='θ = π/6')    # primeira linha
-# plt.scatter(rec_2[2, 0], rec_2[2, 1], color='green', marker='^', s=100,)                     # segunda linha
+plt.scatter(rec_1[2, 0], rec_1[2, 1], color='green', marker='^', s=100, label='θ = π/6')    # primeira linha
+plt.scatter(rec_2[2, 0], rec_2[2, 1], color='green', marker='^', s=100,)                     # segunda linha
 
-# plt.scatter(rec_1[3, 0], rec_1[3, 1], color='purple', marker='^', s=100, label='θ = π/4')    # primeira linha
-# plt.scatter(rec_2[3, 0], rec_2[3, 1], color='purple', marker='^', s=100,)                     # segunda linha
+plt.scatter(rec_1[3, 0], rec_1[3, 1], color='purple', marker='^', s=100, label='θ = π/4')    # primeira linha
+plt.scatter(rec_2[3, 0], rec_2[3, 1], color='purple', marker='^', s=100,)                     # segunda linha
 
 
-# # Labels
-# plt.xlabel('Distance (m)', fontsize=13, fontweight='bold', labelpad=10)
-# plt.ylabel('Depth (m)', fontsize=13, fontweight='bold', labelpad=20)
+# Labels
+plt.xlabel('Distance (m)', fontsize=13, fontweight='bold', labelpad=10)
+plt.ylabel('Depth (m)', fontsize=13, fontweight='bold', labelpad=20)
 
-# # Eixos
-# plt.tick_params(axis='both', labelsize=14)
-# plt.gca().xaxis.tick_top()
-# plt.gca().xaxis.set_label_position('top')
+# Eixos
+plt.tick_params(axis='both', labelsize=14)
+plt.gca().xaxis.tick_top()
+plt.gca().xaxis.set_label_position('top')
 
-# plt.legend(fontsize=12, loc='upper left')
+plt.legend(fontsize=12, loc='upper left')
 
-# # Salvar figura
-# plt.savefig(os.path.join(SavePath, 'modelo_cg_cp.png'), dpi=300, bbox_inches='tight')
-# plt.show()
+# Salvar figura
+plt.savefig(os.path.join(SavePath, 'modelo_cg_cp.png'), dpi=300, bbox_inches='tight')
+plt.show()
 
 # ==============================================
 #   Calculando e plotando a velocidade de grupo
@@ -226,7 +223,7 @@ for i in range(0, len(frq)):
         # Aproximação de primeiro grau (estima a e b)  nesse caso a = -2*pi*δt
         a = np.polyfit(freqs, phi_cross, 1)
 
-        # logo δt = - a / 2 * pi
+        # logo δt = -a / 2 * pi
         delay = -a[0] / (2 * pi)
 
         if  i >= 2: 

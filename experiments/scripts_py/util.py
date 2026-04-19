@@ -2,8 +2,6 @@ import rsf.api as rsf
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-from scipy.signal import hilbert
-from scipy.ndimage import gaussian_filter1d
 
 def loadrsf(FileName : str) -> np.ndarray:
     '''
