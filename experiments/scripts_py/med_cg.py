@@ -2,6 +2,10 @@ import numpy as np
 import util
 import os
 import matplotlib.pyplot as plt
+from scipy.signal import hilbert
+from scipy.ndimage import gaussian_filter1d
+
+
 
 SaveDir = '../figs'
 SavePath = os.path.join(os.getcwd(), SaveDir)
@@ -15,6 +19,9 @@ DataPath    = os.path.join(os.getcwd(), Datadir)
 
 if not os.path.exists(DataPath):
     os.makedirs(DataPath)
+
+
+pi = np.pi
 
 # ============================================
 #      Plotando o modelo de velocidade
@@ -56,51 +63,51 @@ for i in range(0, len(theta)):
     rec_2[i, 0] = rx_
     rec_2[i, 1] = rz_
 
-# ----------------------------
-# Plot
-# ----------------------------
-plt.figure(figsize=(13, 5))
+# # ----------------------------
+# # Plot
+# # ----------------------------
+# plt.figure(figsize=(13, 5))
 
-extent = [x.min(), x.max(), z.max(), z.min()]
+# extent = [x.min(), x.max(), z.max(), z.min()]
 
-im = plt.imshow(vel, cmap='viridis', extent=extent, vmin=900, vmax=1000, aspect=0.5)
+# im = plt.imshow(vel, cmap='viridis', extent=extent, vmin=900, vmax=1000, aspect=0.5)
 
-# Color bar
-cbar = plt.colorbar(im, shrink=1, pad=0.05)
-cbar.ax.tick_params(labelsize=14)
-cbar.set_label('Velocity (m/s)', fontsize=13, fontweight='bold')
+# # Color bar
+# cbar = plt.colorbar(im, shrink=1, pad=0.05)
+# cbar.ax.tick_params(labelsize=14)
+# cbar.set_label('Velocity (m/s)', fontsize=13, fontweight='bold')
 
-# Fonte
-plt.scatter(fonte[0], fonte[1], color='red', marker='*', s=150, label='Source')
+# # Fonte
+# plt.scatter(fonte[0], fonte[1], color='red', marker='*', s=150, label='Source')
 
-# Receptores
-plt.scatter(rec_1[0, 0], rec_1[0, 1], color='blue', marker='^', s=100, label='θ = 0')    # primeira linha
-plt.scatter(rec_2[0, 0], rec_2[0, 1], color='blue', marker='^', s=100,)                     # segunda linha
+# # Receptores
+# plt.scatter(rec_1[0, 0], rec_1[0, 1], color='blue', marker='^', s=100, label='θ = 0')    # primeira linha
+# plt.scatter(rec_2[0, 0], rec_2[0, 1], color='blue', marker='^', s=100,)                     # segunda linha
 
-plt.scatter(rec_1[1, 0], rec_1[1, 1], color='black', marker='^', s=100, label='θ = π/12')    # primeira linha
-plt.scatter(rec_2[1, 0], rec_2[1, 1], color='black', marker='^', s=100,)                     # segunda linha
+# plt.scatter(rec_1[1, 0], rec_1[1, 1], color='black', marker='^', s=100, label='θ = π/12')    # primeira linha
+# plt.scatter(rec_2[1, 0], rec_2[1, 1], color='black', marker='^', s=100,)                     # segunda linha
 
-plt.scatter(rec_1[2, 0], rec_1[2, 1], color='green', marker='^', s=100, label='θ = π/6')    # primeira linha
-plt.scatter(rec_2[2, 0], rec_2[2, 1], color='green', marker='^', s=100,)                     # segunda linha
+# plt.scatter(rec_1[2, 0], rec_1[2, 1], color='green', marker='^', s=100, label='θ = π/6')    # primeira linha
+# plt.scatter(rec_2[2, 0], rec_2[2, 1], color='green', marker='^', s=100,)                     # segunda linha
 
-plt.scatter(rec_1[3, 0], rec_1[3, 1], color='purple', marker='^', s=100, label='θ = π/4')    # primeira linha
-plt.scatter(rec_2[3, 0], rec_2[3, 1], color='purple', marker='^', s=100,)                     # segunda linha
+# plt.scatter(rec_1[3, 0], rec_1[3, 1], color='purple', marker='^', s=100, label='θ = π/4')    # primeira linha
+# plt.scatter(rec_2[3, 0], rec_2[3, 1], color='purple', marker='^', s=100,)                     # segunda linha
 
 
-# Labels
-plt.xlabel('Distance (m)', fontsize=13, fontweight='bold', labelpad=10)
-plt.ylabel('Depth (m)', fontsize=13, fontweight='bold', labelpad=20)
+# # Labels
+# plt.xlabel('Distance (m)', fontsize=13, fontweight='bold', labelpad=10)
+# plt.ylabel('Depth (m)', fontsize=13, fontweight='bold', labelpad=20)
 
-# Eixos
-plt.tick_params(axis='both', labelsize=14)
-plt.gca().xaxis.tick_top()
-plt.gca().xaxis.set_label_position('top')
+# # Eixos
+# plt.tick_params(axis='both', labelsize=14)
+# plt.gca().xaxis.tick_top()
+# plt.gca().xaxis.set_label_position('top')
 
-plt.legend(fontsize=12, loc='upper left')
+# plt.legend(fontsize=12, loc='upper left')
 
-# Salvar figura
-plt.savefig(os.path.join(SavePath, 'modelo_cg_cp.png'), dpi=300, bbox_inches='tight')
-plt.show()
+# # Salvar figura
+# plt.savefig(os.path.join(SavePath, 'modelo_cg_cp.png'), dpi=300, bbox_inches='tight')
+# plt.show()
 
 # ==============================================
 #   Calculando e plotando a velocidade de grupo
@@ -112,6 +119,8 @@ c = 1000                                            # velocidade real do meio
 r = 700.2                                           # distância fonte receptor
 theta = [0, np.pi/12, np.pi/6, np.pi/4]             # angulos entre fonte receptor
 nt  = 5000
+rc = r / c
+rho = 1200.0
 
 frq = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]   # frequências de medida
 dr  = 300                                           # distância entre os receptores
@@ -123,12 +132,12 @@ cre *= 1000                                         # vetor com a velocidade rea
 
 cgf = util.calc_cg(theta, f, dt, dh, c)
 
-util.plot_cg(
-    f,
-    cgf, cre,
-    ['θ = 0', 'θ = π/12', 'θ = π/6', 'θ = π/4'],
-    os.path.join(SavePath, 'group_vel')
-)
+# util.plot_cg(
+#     f,
+#     cgf, cre,
+#     ['θ = 0', 'θ = π/12', 'θ = π/6', 'θ = π/4'],
+#     os.path.join(SavePath, 'group_vel')
+# )
 
 # salva os dados
 for i in range(0, len(theta)):
@@ -138,112 +147,114 @@ for i in range(0, len(theta)):
         fmt="%.3f"
     )
 
-# ==========================
-#      Medição de Cg
-# ==========================
 
-data1  = []
-data2  = []
-cg_est = []
+# Medição da velocidade de grupo
 
-DirFrq = os.path.join(os.getcwd(), '../dados_frq')
+t = np.arange(nt) * dt
 
+data_mod1 = []
+data_mod2 = []
+data_ana  = []
 
-# TODO: ATENÇÃO A ORDEM DOS LOOPS VERIFICAR SE MUDA O RESULTADO SE INVERTER.
+cg_est   = []
+del_t_list = []
+qualidade_list = []
 
-for f in frq:
-    for i in range(0, len(theta)):
-        data_mod1 = util.loadrsf(os.path.join(DirFrq, f'dataP1-{(i+1)}_fos{f}'))
+for fe in frq:
+    for th in range(1, len(theta) + 1):
+        data1 = util.loadrsf(f'../dados_frq/dataP1-{th}_fos{fe}.rsf')
 
-        data1.append(data_mod1)
-
-    for i in range(4, 2*len(theta)):
-        data_mod2 = util.loadrsf(os.path.join(DirFrq, f'dataP2-{(i+1)}_fos{f}'))
-
-        data2.append(data_mod2)
-
-data1 = np.array(data1).reshape(len(frq), len(theta), nt)
-data2 = np.array(data2).reshape(len(frq), len(theta), nt)
-
-
-
-for d1, d2 in zip(data1, data2):
-    for i in range(0, len(theta)):
-
-        # Correlação cruzada entre os dados
-        corr = np.correlate(d2[i, :], d1[i, :], mode='full')
-
-        # lags para criar eixo do tempo
-        lags = np.arange(-len(d1[i, :])+1, len(d1[i, :]))
-
-        # eixo do tempo
-        t_corr = lags * dt
-
-
-        # util.plot(
-        #     t_corr, corr, 0, len(t_corr), (t_corr[1] - t_corr[0]), ['Cross Correlation'],
-        #     ['time_lag (s)', 'Cross-correlation'], os.path.join(SavePath, f'corr_{i}')
-        # )
-
-        # indicie do pico máximo da correlação
-        idx = np.argmax(corr)
-
-        max_t  = lags[idx] * dt
-        max_t_ = lags[idx-1] * dt
-        max_t1 = lags[idx+1] * dt
-
-
-        # plt.figure(figsize=(10,5))
-        # plt.plot(t_corr, corr, c='black', lw=2)
-
-        # plt.scatter(max_t, corr[idx], c='red', marker="o")
-        # plt.scatter(max_t_, corr[idx-1], c='red', marker="o")
-        # plt.scatter(max_t1, corr[idx+1], c='red', marker="o")        
-        
-        # plt.grid()
-        # plt.xlim((0.29, 0.31))
-        # plt.show()
-
-        if 0 < idx < len(corr)-1:
-            y1 = corr[idx-1]
-            y2 = corr[idx]
-            y3 = corr[idx+1]
-
-            delta = 0.5 * ((y1 - y3) / (y1 - 2*y2 + y3))
-        else:
-            delta = 0.0
-
-        
-        lag_r = lags[idx] + delta
-        delta_t = lag_r * dt
-
-        # velocidade de grupo medida
-        cg_med = dr / delta_t
-
-        # adiciona valor ao vetor
-        cg_est.append(cg_med)
-
-
-cg_est  = np.array(cg_est).reshape(len(frq), len(theta), 1)
-frq     = np.array(frq).reshape(len(frq), 1)
-
-for i in range(0, len(theta)):
-    # salva valores medidos
-    np.savetxt(
-        os.path.join(DataPath,f'dados_cg_{i}.txt'), 
-        np.column_stack((frq, cg_est[:, i])),
-        fmt='%.3f')
+        data_mod1.append(data1)
     
+    for th in range(5, 2*len(theta)+1):
+        data2 = util.loadrsf(f'../dados_frq/dataP2-{th}_fos{fe}.rsf')
 
-# Seção de plot e salvamento
+        data_mod2.append(data2)
 
-# Carregar dados
-f_teo, cg_teo = util.load_data_cg(theta, 'cgf')
-f_est, cg_est = util.load_data_cg(theta, 'dados_cg')
+
+data_mod1 = np.array(data_mod1).reshape(len(frq), len(theta), len(t)) 
+data_mod2 = np.array(data_mod2).reshape(len(frq), len(theta), len(t)) 
+
+
+for fe in frq:
+    wav = util.loadrsf(f'../dados_frq/wav_{fe}.rsf')
+
+    # Criando a função de Green da equação de segunda ordem
+    G = np.zeros_like(t)
+
+    mask = t > rc
+    G[mask] = ((-1)/(2*pi)) * (1 / np.sqrt(t[mask]**2 - rc**2))
+
+    # Criar dado semi-analítico
+    Sap = util.create_sap(G, wav, t, rho, dx, dz)
+
+    data_ana.append(Sap)
+
+
+data_ana = np.repeat(np.array(data_ana)[:, np.newaxis, :], len(theta), axis=1)
+
+
+for i in range(0, len(frq)):
+    for j in range(0, len(theta)):
+
+        S1 = data_mod1[i, j, :]
+        S2 = data_mod2[i, j, :]
+
+        fft_s1 = np.fft.fft(S1)
+        fft_s2 = np.fft.fft(S2)
+
+        cross = fft_s2 * np.conj(fft_s1)        # Correlação cruzada na frequência
+
+        n_f = np.fft.fftfreq(len(S1), dt)   # Eixo da frequências
+
+
+        f_pos = n_f > 0     # Somente frequências positivas
+
+        # Pegando somente frequências positivas e em torno da frequência central
+        f_min = frq[i] * 0.8
+        f_max = frq[i] * 1.2
+
+        f_band = (n_f >= f_min) & (n_f <= f_max)
+
+        mask = f_pos & f_band
+
+        # supondo onda plana isso deveria ser -2*pi*f*δt + b
+        phi_cross = np.unwrap(np.angle(cross[mask]))
+        freqs = n_f[mask] 
+
+        # Aproximação por mínimos quadrados
+        # Aproximação de primeiro grau (estima a e b)  nesse caso a = -2*pi*δt
+        a = np.polyfit(freqs, phi_cross, 1)
+
+        # logo δt = - a / 2 * pi
+        delay = -a[0] / (2 * pi)
+
+        if  i >= 2: 
+            del_t = delay
+        else:   # Usa o método temporal nas primeira frequências. Continua sendo mais preciso !!!!
+            corr = np.correlate(S2, S1, mode='full')
+            lags = np.arange(-len(S2)+1, len(S2))
+            idt = np.argmax(corr)
+            
+            if 0 < idt < len(corr) - 1:
+                y1, y2, y3 = corr[idt-1], corr[idt], corr[idt+1]
+                delta = 0.5 * ((y1 - y3) / (y1 - 2*y2 + y3))
+                lag_r = lags[idt] + delta
+                del_t = lag_r * dt
+            else:
+                del_t = lags[idt] * dt
+            
+        
+        # Calcula velocidade de grupo
+        cg_mod = dr / del_t
+        cg_est.append(cg_mod)
+
+
+cg_est = np.array(cg_est).reshape(len(frq), len(theta))
 
 util.comp_cg(
-    f_teo, f_est,
-    cg_teo, cg_est,
+    f, frq,
+    cgf, cg_est,
     ['Measured (θ = 0)', 'Measured (θ = π/12)', 'Measured (θ = π/6)', 'Measured (θ = π/4)'],
     ['Theoretical (θ = 0)', 'Theoretical (θ = π/12)', 'Theoretical (θ = π/6)', 'Theoretical (θ = π/4)'],
     os.path.join(SavePath, 'cg_teo_med')

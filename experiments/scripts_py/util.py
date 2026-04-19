@@ -2,6 +2,8 @@ import rsf.api as rsf
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+from scipy.signal import hilbert
+from scipy.ndimage import gaussian_filter1d
 
 def loadrsf(FileName : str) -> np.ndarray:
     '''
@@ -236,16 +238,16 @@ def plot(x : np.ndarray, y1 : np.ndarray,
 def comp_cg(f : np.ndarray, f_est : np.ndarray, cg_teo : np.ndarray, cg_est : np.ndarray,
             label1 : list[str], label2 : list[str], SaveName : str):
 
-    n_teo = len(cg_teo[:, 0])
-    n_est = len(cg_est[:, 0])
+    n_teo = len(cg_teo[0, :])
+    n_est = len(cg_est[0, :])
 
     plt.figure(figsize=(15,8))
 
     for i, l1 in zip(range(n_teo), label1):
-        plt.plot(f_est, cg_est[i, :], lw=2, ls='--', label=l1)
+        plt.plot(f_est, cg_est[:, i], lw=2, ls='--', label=l1)
 
     for j, l2 in zip(range(n_est), label2):
-        plt.plot(f, cg_teo[j, :], lw=2, label=l2)
+        plt.plot(f, cg_teo[:, j], lw=2, label=l2)
 
     plt.grid()
     plt.xlabel('f [Hz]', fontsize=14, fontweight='bold')
@@ -267,3 +269,5 @@ def comp_cg(f : np.ndarray, f_est : np.ndarray, cg_teo : np.ndarray, cg_est : np
     plt.savefig(SaveName, dpi=300, bbox_inches='tight')
 
     plt.show()
+
+
