@@ -69,7 +69,12 @@ cd accuracy_test_fos_modeler
    ```
 
 ## Runing the Experiments
-
+   
+   First, you must install the dependencies in a new conda environment.
+   ```bash
+   conda env create -f environment.yml
+   conda activate car_fos
+   ```
    Go to the experiments directory and run scons
    ```bash
    cd experiments
