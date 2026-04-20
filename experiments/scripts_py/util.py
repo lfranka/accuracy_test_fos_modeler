@@ -195,7 +195,8 @@ def plot_comp(x : np.ndarray, y1 : np.ndarray, y2 : np.ndarray,
 
     plt.grid()
 
-    plt.xlim((ox, (nx * dx) - 0.75)) 
+    # plt.xlim((ox, (nx * dx) - 0.75))
+    plt.xlim(4, 6)
 
     plt.legend(fontsize=14)
 
@@ -208,7 +209,7 @@ def plot_comp(x : np.ndarray, y1 : np.ndarray, y2 : np.ndarray,
 
 def plot(x : np.ndarray, y1 : np.ndarray,
               ox : int, nx : int, dx : float, labels : list[str],
-              xylabel : list[str], SaveName : str):
+              xylabel : list[str], SaveName : str, legend : bool = True):
 
     plt.figure(figsize=(13, 5))
 
@@ -219,10 +220,11 @@ def plot(x : np.ndarray, y1 : np.ndarray,
 
     plt.grid()
 
-    plt.xlim((ox, (nx * dx)- 0.75)) 
-    # plt.xlim(-1, 1) 
+    # plt.xlim((ox, (nx * dx)- 0.75)) 
+    plt.xlim(4, 6)
 
-    plt.legend(fontsize=14)
+    if legend is True:
+        plt.legend(fontsize=14)
 
     if not SaveName.endswith('.png'):
         SaveName += '.png'

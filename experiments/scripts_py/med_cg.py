@@ -208,8 +208,8 @@ for i in range(0, len(frq)):
         f_pos = n_f > 0     # Somente frequências positivas
 
         # Pegando somente frequências positivas e em torno da frequência central
-        f_min = frq[i] * 0.8
-        f_max = frq[i] * 1.2
+        f_min = frq[i] - 1
+        f_max = frq[i] + 1
 
         f_band = (n_f >= f_min) & (n_f <= f_max)
 
